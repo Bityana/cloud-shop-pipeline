@@ -1,36 +1,19 @@
-# Cloud-Shop Pipeline
+# Cloud Shop Pipeline
 
-Cloud-Shop is a demo e‑commerce storefront built to showcase **AWS DevOps**, **secure CI/CD**, and **full‑stack** chops in one repo.
+| Layer | Folder | Tech |
+|-------|--------|------|
+| **CI / Automation** | `.github/workflows/` | GitHub Actions |
+| **Backend** | `backend/` | FastAPI + PostgreSQL |
+| **Frontend** | `frontend/` | React + Vite |
+| **Infrastructure** | `infra/terraform/` | AWS EKS + RDS |
 
-## Quick diagram
-```
-React (Vite) --> ALB ---> ECS (FastAPI) --> RDS
-                      \-> CloudWatch -> OpenSearch
-```
-<details><summary>Show more</summary>
+## Quick start
 
-### Features
-* Terraform‑provisioned VPC, ALB, ECS Fargate, RDS PostgreSQL, OpenSearch
-* GitHub Actions pipeline: test → Snyk scan → SBOM → build/push → deploy
-* Stripe test checkout
-* End‑to‑end logs searchable in Kibana dashboard
-
-### Local dev
 ```bash
-docker compose -f docker-compose.dev.yml up --build
-```
-Then hit <http://localhost:3000>.
-
-### One‑click deploy
-```bash
+# 1. Spin up infra (Terraform)
 cd infra/terraform
-terraform init
-terraform apply
-```
+terraform init && terraform apply
 
-### Security add‑ons
-* Snyk test in workflow
-* Syft SBOM upload as build artifact
-* CIS‑hardened Fargate base image
-
-</details>
+# 2. Build & run services locally
+cd ..
+docker compose up --build
