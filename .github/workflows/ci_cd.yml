@@ -1,0 +1,39 @@
+name: Build-Test-Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: cloud-shop
+  ECS_SERVICE: cloud-shop-svc
+  ECS_CLUSTER: cloud-shop-cluster
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - run: pip install -r backend/requirements.txt
+    - run: pytest backend
+  build-push:
+    needs: backend
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - uses: aws-actions/amazon-ecr-login@v2
+    - run: |
+        docker build -t $ECR_REPO:latest -f backend/Dockerfile ./backend
+        docker tag $ECR_REPO:latest "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GITHUB_SHA"
+        docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GITHUB_SHA"
+    - name: Deploy to ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        task-definition: infra/ecs_taskdef.json
